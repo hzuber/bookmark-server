@@ -44,3 +44,7 @@
 {"message":"Title must be between 3 and 100 characters","level":"error"}
 {"message":"Title must be between 3 and 100 characters","level":"error"}
 {"message":"Title must be between 3 and 100 characters","level":"error"}
+{"message":"Unauthorized request to path: /api/bookmarks","level":"error"}
+{"message":"Unauthorized request to path: /api/bookmarks","level":"error"}
+{"message":"Unauthorized request to path: /api/bookmarks","level":"error"}
+{"message":"Unauthorized request to path: /api/bookmarks","level":"error"}
