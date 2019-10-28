@@ -1,8 +1,11 @@
+require('dotenv')
 const { expect } = require('chai')
 const knex = require('knex')
 const app = require('../src/app')
 const {testBookmarks} = require('./test-bookmarks')
 const {makeMaliciousBookmark} = require('./test-bookmarks')
+const apiToken = process.env.API_TOKEN
+const apiAuth = 'Bearer: ' + apiToken
 
 describe('Bookmarks Endpoints', () => {
     let db
@@ -29,6 +32,7 @@ describe('Bookmarks Endpoints', () => {
             it('GET /bookmarks responds with 200 and the bookmarks', () => {
                 return supertest(app)
                     .get('/api/bookmarks')
+                    .set({ 'Authorization' : apiAuth})
                     .expect(200, testBookmarks)
             })
         })
@@ -36,6 +40,7 @@ describe('Bookmarks Endpoints', () => {
             it('GET /bookmarks responds with 200 and empty array', () => {
                 return supertest(app)
                     .get('/api/bookmarks')
+                    .set({ 'Authorization' : apiAuth})
                     .expect(200, [])
             })
         })
@@ -51,6 +56,7 @@ describe('Bookmarks Endpoints', () => {
             it('removes XSS attack content', () => {
                 return supertest(app)
                     .get(`/api/bookmarks`)
+                    .set({ 'Authorization' : apiAuth})
                     .expect(200)
                     .expect(res => {
                         expect(res.body[0].title).to.eql(expectedBookmark.title)
@@ -70,6 +76,7 @@ describe('Bookmarks Endpoints', () => {
                 const expectedBookmark = testBookmarks[bookmarkId - 1]
                 return supertest(app)
                     .get(`/api/bookmarks/${bookmarkId}`)
+                    .set({ 'Authorization' : apiAuth})
                     .expect(200, expectedBookmark)
             })
         })
@@ -78,6 +85,7 @@ describe('Bookmarks Endpoints', () => {
                 const bookmarkId = 98765
                 return supertest(app)
                     .get(`/api/bookmarks/${bookmarkId}`)
+                    .set({ 'Authorization' : apiAuth})
                     .expect(404, { error: { message: `Bookmark doesn't exist` } })
             })
         })
@@ -93,6 +101,7 @@ describe('Bookmarks Endpoints', () => {
             it('removes XSS attack content', () => {
                 return supertest(app)
                     .get(`/api/bookmarks/${maliciousBookmark.id}`)
+                    .set({ 'Authorization' : apiAuth})
                     .expect(200)
                     .expect(res => {
                         expect(res.body.title).to.eql(expectedBookmark.title)
@@ -112,6 +121,7 @@ describe('Bookmarks Endpoints', () => {
             it('when given valid bookmark, responds with 201 and creates', () => {
                 return supertest(app)
                     .post(`/api/bookmarks`) 
+                    .set({ 'Authorization' : apiAuth})
                     .send(newBookmark)
                     .expect(201)
                     .expect(res => {
@@ -122,8 +132,9 @@ describe('Bookmarks Endpoints', () => {
                     })
                     .then(postRes =>
                         supertest(app)
-                        .get(`/api/bookmarks/${postRes.body.id}`)
-                        .expect(postRes.body)
+                            .get(`/api/bookmarks/${postRes.body.id}`)
+                            .set({ 'Authorization' : apiAuth})
+                            .expect(postRes.body)
                     )
             })
         })
@@ -139,6 +150,7 @@ describe('Bookmarks Endpoints', () => {
                     delete newNewBookmark[field]
                     return supertest(app)
                         .post('/api/bookmarks')
+                        .set({ 'Authorization' : apiAuth})
                         .send(newNewBookmark)
                         .expect(400, {
                             error: { message:   `Missing '${field}' in request body`}
@@ -151,6 +163,7 @@ describe('Bookmarks Endpoints', () => {
                 newBookmark.title = 'hi'
                 return supertest(app)
                     .post('/api/bookmarks')
+                    .set({ 'Authorization' : apiAuth})
                     .send(newBookmark)
                     .expect(400, {
                         error: { message: 'Title must be between 3 and 100 characters'}
@@ -161,6 +174,7 @@ describe('Bookmarks Endpoints', () => {
                 newBookmark.rating = 7
                 return supertest(app)
                     .post('/api/bookmarks')
+                    .set({ 'Authorization' : apiAuth})
                     .send(newBookmark)
                     .expect(400, {
                         error: {message: 'Rating must be a number between 1 and 5'}
@@ -170,6 +184,7 @@ describe('Bookmarks Endpoints', () => {
                 newBookmark.rating = 0
                 return supertest(app)
                     .post('/api/bookmarks')
+                    .set({ 'Authorization' : apiAuth})
                     .send(newBookmark)
                     .expect(400, {
                         error: {message: 'Rating must be a number between 1 and 5'}
@@ -179,6 +194,7 @@ describe('Bookmarks Endpoints', () => {
                 newBookmark.rating = 'A'
                 return supertest(app)
                     .post('/api/bookmarks')
+                    .set({ 'Authorization' : apiAuth})
                     .send(newBookmark)
                     .expect(400, {
                         error: {message: 'Rating must be a number between 1 and 5'}
@@ -191,6 +207,7 @@ describe('Bookmarks Endpoints', () => {
             it('removes XSS attack content', () => {
                 return supertest(app)
                     .post(`/api/bookmarks`)
+                    .set({ 'Authorization' : apiAuth})
                     .send(maliciousBookmark)
                     .expect(201)
                     .expect(res => {
@@ -210,10 +227,12 @@ describe('Bookmarks Endpoints', () => {
                 const expectedBookmarks = testBookmarks.filter(bookmark => bookmark.id !== idToRemove)
                 return supertest(app)
                     .delete(`/api/bookmarks/${idToRemove}`)
+                    .set({ 'Authorization' : apiAuth})
                     .expect(204)
                     .then(res => 
                         supertest(app)
                         .get(`/api/bookmarks`)
+                        .set({ 'Authorization' : apiAuth})
                         .expect(expectedBookmarks))
             })
         })
@@ -222,6 +241,7 @@ describe('Bookmarks Endpoints', () => {
                 const idToRemove = 123456
                 return supertest(app)
                     .delete(`/api/bookmarks/${idToRemove}`)
+                    .set({ 'Authorization' : apiAuth})
                     .expect(404, {error: {message: `Bookmark doesn't exist`}})
                 })
         })
@@ -232,6 +252,7 @@ describe('Bookmarks Endpoints', () => {
                 const bookmarkId = 123456
                 return supertest(app)
                     .patch(`/api/bookmarks/${bookmarkId}`)
+                    .set({ 'Authorization' : apiAuth})
                     .expect(404, {error: {message: `Bookmark doesn't exist`}})
             })
         })
@@ -256,11 +277,13 @@ describe('Bookmarks Endpoints', () => {
                 }
                 return supertest(app)
                     .patch(`/api/bookmarks/${idToUpdate}`)
+                    .set({ 'Authorization' : apiAuth})
                     .send(updateBookmark)
                     .expect(204)
                     .then(res => {
                         supertest(app)
                             .get(`/api/bookmarks/${idToUpdate}`)
+                            .set({ 'Authorization' : apiAuth})
                             .expect(expectedBookmark)
                     })
             })

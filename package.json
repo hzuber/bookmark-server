@@ -7,7 +7,10 @@
     "test": "mocha --require test/setup.js",
     "dev": "nodemon src/server.js",
     "migrate": "postgrator --config postgrator-config.js",
-    "migrate:test": "env NODE_ENV=test npm run migrate",
+    "migrate:test": "cross-env NODE_ENV=test npm run migrate",
+    "migrate:production": "cross-env DATABASE_URL=$(heroku config:get DATABASE_URL) SSL=true npm run migrate",
+    "predeploy": "npm audit && npm run migrate:production",
+    "deploy": "git push heroku master",
     "start": "node src/server.js"
   },
   "keywords": [],
@@ -15,6 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "cross-env": "^6.0.3",
     "dotenv": "^8.1.0",
     "express": "^4.17.1",
     "helmet": "^3.21.1",
